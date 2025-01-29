@@ -98,7 +98,92 @@ class RenderGraphviz(RenderBase):
 
         # Add Javascript
 
+    def _add_io_group_time_on_edge(self, group_id, files_info, graph, svg):
+        """ Add IO group to SVG/JS """
+        # Iterate through each file and handle them individually
+        for path_id in files_info["files"]:
+            for fcreate in files_info["files"][path_id]:
+                # Generate a unique node ID for each file
+                node_id = (path_id[0], fcreate)
+                js_file = "'{}'".format("|".join(node_id))
+
+                # Create a label for the file
+                label = os.path.basename(node_id[0])
+
+                # Add the individual file node to the SVG
+                if not svg.has_node(node_id):  # Ensure nodes are not overwritten
+                    style = "target" if files_info["target"] else "file"
+                    svg.add_node(
+                        node_id,
+                        label=label,
+                        URL="javascript:activate_file([{}]);".format(js_file),
+                        **self.STYLES[style]
+                    )
+
+                # Add IO relationships (read, write) for the current file
+                for io_idx, io_type in enumerate(("read", "write")):
+                    if len(group_id[io_idx]) > 0:
+                        for process_id in group_id[io_idx]:
+                            edge = (node_id, process_id) if io_idx == 0 else (process_id, node_id)
+
+                            js_io = []
+                            io_times = []  # Collect I/O times for the edge
+                            for orig_id in files_info["{}_lookup".format(io_type)][process_id]:
+                                js_io.append("'{}'".format("|".join(orig_id)))
+                                # Extract the I/O time (assumed to be the last element of orig_id)
+                                io_times.append(orig_id[-1])
+
+                            # Generate edge label with I/O times
+                            edge_label = f"{', '.join(io_times)}"
+
+                            # Add the edge to the SVG, ensuring no duplication
+                            if not svg.has_edge(*edge):
+                                svg.add_edge(
+                                    *edge,
+                                    label=edge_label,  # Add the I/O time as a label
+                                    URL="javascript:activate_io({}, [{}]);".format(io_idx, ",".join(js_io))
+                                )
+
     def _add_io_group(self, group_id, files_info, graph, svg):
+        """ Add IO group to SVG/JS """
+        # Iterate through each file and handle them individually
+        for path_id in files_info["files"]:
+            for fcreate in files_info["files"][path_id]:
+                # Generate a unique node ID for each file
+                node_id = (path_id[0], fcreate)
+                js_file = "'{}'".format("|".join(node_id))
+
+                # Create a label for the file
+                label = os.path.basename(node_id[0])
+
+                # Add the individual file node to the SVG
+                if not svg.has_node(node_id):  # Ensure nodes are not overwritten
+                    style = "target" if files_info["target"] else "file"
+                    svg.add_node(
+                        node_id,
+                        label=label,
+                        URL="javascript:activate_file([{}]);".format(js_file),
+                        **self.STYLES[style]
+                    )
+
+                # Add IO relationships (read, write) for the current file
+                for io_idx, io_type in enumerate(("read", "write")):
+                    if len(group_id[io_idx]) > 0:
+                        for process_id in group_id[io_idx]:
+                            edge = (node_id, process_id) if io_idx == 0 else (process_id, node_id)
+
+                            js_io = []
+                            for orig_id in files_info["{}_lookup".format(io_type)][process_id]:
+                                js_io.append("'{}'".format("|".join(orig_id)))
+
+                            # Add the edge to the SVG, ensuring no duplication
+                            if not svg.has_edge(*edge):
+                                svg.add_edge(
+                                    *edge,
+                                    URL="javascript:activate_io({}, [{}]);".format(io_idx, ",".join(js_io))
+                                )
+
+    def _add_io_group_old(self, group_id, files_info, graph, svg):
         """ Add IO group to SVG/JS """
         # Build IDs and label
         node_id = []
