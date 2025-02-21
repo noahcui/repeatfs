@@ -208,15 +208,26 @@ class Management:
 
         pid = self.core.get_pid(pid)
 
+        pids = IORecord.get(descriptor, self)
         # Ensure pid recorded to this descriptor (for descriptors passed to child processes)
-        if pid not in IORecord.get(descriptor, self):
+        # check for None
+        if pids is None:
+            self.register_open(descriptor, pid=pid, record_file=False)
+        elif pid not in pids:
             self.register_open(descriptor, pid=pid, record_file=False)
 
-        IORecord.get(descriptor, self, pid=pid).update(IORecord.IO_READ, op_type, io_time=io_time)
+        # ##    
+        # # Ensure pid recorded to this descriptor (for descriptors passed to child processes)
+        # if pid not in IORecord.get(descriptor, self):
+            
+        #     self.register_open(descriptor, pid=pid, record_file=False)
+        # ##
 
+        IORecord.get(descriptor, self, pid=pid).update(IORecord.IO_READ, op_type, io_time=io_time)
+        
         if update_process:
             ProcessRecord.get(pid, self)._update()
-
+            
     def register_write(self, descriptor, op_type=OP_IO, pid=None, update_process=True, io_time=None):
         """ Update write end time """
         if not self.enable:
@@ -224,9 +235,22 @@ class Management:
 
         pid = self.core.get_pid(pid)
 
+        pids = IORecord.get(descriptor, self)
         # Ensure pid recorded to this descriptor (for descriptors passed to child processes)
-        if pid not in IORecord.get(descriptor, self):
+        # check the return value for None
+        if pids is None:
+            print("pid=none")
             self.register_open(descriptor, pid=pid, record_file=False)
+        elif pid not in pids:
+            print("pid not in pids")
+            self.register_open(descriptor, pid=pid, record_file=False)
+
+        # ##    
+        # # Ensure pid recorded to this descriptor (for descriptors passed to child processes)
+        # if pid not in IORecord.get(descriptor, self):
+            
+        #     self.register_open(descriptor, pid=pid, record_file=False)
+        # ##
 
         IORecord.get(descriptor, self, pid=pid).update(IORecord.IO_WRITE, op_type, io_time=io_time)
 
