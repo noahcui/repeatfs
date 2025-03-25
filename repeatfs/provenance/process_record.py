@@ -12,6 +12,7 @@
 import os
 from repeatfs.descriptor_entry import DescriptorEntry
 from repeatfs.file_entry import FileEntry
+import threading
 
 
 class ProcessRecord:
@@ -71,8 +72,11 @@ class ProcessRecord:
         self.cwd_desc = None
         self.trunc_history = set()
         self.count = 0
+        self.doing = 0
         self.dirty = True
-
+        self.done = 0
+        self.lock = threading.RLock()
+        self.finalized = False
         # Set remaining fields
         self._update(ignore_pipes=ignore_pipes)
 
@@ -130,6 +134,25 @@ class ProcessRecord:
                         if search_target == self.stdio[fd]:
                             ProcessRecord.update(search_pid, self.management)
 
+    def _update_exec_info(self, count):
+        with self.lock:
+            exe=self.exe
+        md5 = self.management._calculate_hash(exe)
+        do_write = False
+        
+        with self.lock:
+            self.done=count
+            if self.done < self.doing:
+                return
+            self.md5 = md5
+            if self.finalized:
+                self.dirty=True
+                if md5 is not "":
+                    do_write = True
+        if do_write:
+            self.write()
+
+
     def _update(self, force=False, ignore_pipes=None):
         """ Update process record with latest information if necessary """
         # Allow repeated checks for updates within threshold
@@ -181,16 +204,20 @@ class ProcessRecord:
         else:
             self.session_start = 0
 
-        # Record executable
-        try:
-            self.exe = os.readlink("/proc/{0}/exe".format(self.pid)) if self.pid > 1 else ""
+
+        # Record executable in background
+        with self.lock:
+            self.doing=max(self.doing, self.count)
             try:
-                self.md5 = self.management._calculate_hash(self.exe)
-            except (PermissionError, FileNotFoundError):
+                self.exe = os.readlink("/proc/{0}/exe".format(self.pid)) if self.pid > 1 else ""
+                if not hasattr(self, "md5"):
+                    self.md5=""
+                if self.exe!="":
+                    thread = threading.Thread(target=self._update_exec_info, args=(self.count, ), daemon=True)
+                    thread.start()
+            except PermissionError:
+                self.exe = ""
                 self.md5 = ""
-        except PermissionError:
-            self.exe = ""
-            self.md5 = ""
 
         # Record CWD
         try:
@@ -246,7 +273,6 @@ class ProcessRecord:
 
         # Record pipes/processes connected to standard IO devices
         self._record_pipes(ignore_pipes)
-
         return
 
     def write(self):
@@ -292,3 +318,8 @@ class ProcessRecord:
                         else:
                             # Clean up cache once complete
                             del self._pipe_cache[self.stdio[fd]]
+
+        with self.lock:
+            if self.done < self.doing:
+                self.finalized=True
+                self.dirty = True

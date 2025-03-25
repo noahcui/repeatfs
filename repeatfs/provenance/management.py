@@ -122,15 +122,22 @@ class Management:
                     return float(line.split(" ")[1].rstrip())
 
     def _calculate_hash(self, path):
-        """ Generate MD5 hash for file """
-        md5 = hashlib.md5()
+        """Generate MD5 hash for file, with error handling"""
+        try:
+            # md5 初始化
+            md5 = hashlib.md5()
+            # open as NonBlock
+            fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
 
-        with open(path, "rb") as handle:
-            for chunk in iter(partial(handle.read, 4096), b""):
-                md5.update(chunk)
+            with os.fdopen(fd, "rb") as handle:
+                for chunk in iter(partial(handle.read, 4096), b""):
+                    md5.update(chunk)
 
-        return md5.hexdigest()
+            return md5.hexdigest()
 
+        except (OSError, IOError, PermissionError) as e:
+            return "err"
+        
     def _write_root(self):
         """ Write current FS root and refresh IDs """
         with self.lock:
