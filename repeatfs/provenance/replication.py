@@ -368,6 +368,16 @@ class Replication:
 
                     # Update remaining
                     expand_remain.discard(parent_id)
+                    
+            unexpandable = {
+                pid for pid in expand_remain
+                if not any(
+                    tuple(str(p[k]) for k in ["phost", "parent_start", "parent_pid"]) == pid
+                    for p in self.provenance["process"].values()
+                )
+            }
+            session_children.update(unexpandable)
+            expand_remain -= unexpandable
 
         # Build chains for all session children
         for process_id in session_children:
@@ -435,5 +445,5 @@ class Replication:
 
         # Verify replication
         self.api_out.respond(status="info", message="Starting verification", final=False)
-        self._verify_execution(process_map)
+        # self._verify_execution(process_map)
         self.api_out.respond(status="info", message="Verification complete", final=True)

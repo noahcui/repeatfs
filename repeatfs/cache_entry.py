@@ -199,7 +199,7 @@ class CacheEntry:
             start = (pos + ret_size) % block_size
 
             # Phase 1 (Availability, Resets) - wait for IO priority
-            self.core.log("IO loop phase 1: op {0}, block {1} start {2} ret_size {3}".format(operation, block, start, ret_size), self.core.LOG_DEBUG)
+            self.core.log("IO loop phase 1: op {0}, block {1} start {2} ret_size {3} size{4}".format(operation, block, start, ret_size, size), self.core.LOG_DEBUG)
             with self.lock:
                 self.priority_wait(block, descriptor, operation)
 
