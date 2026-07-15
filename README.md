@@ -194,3 +194,26 @@ If you wish to develop your own plugin, see the `template.txt` in the `plugins` 
 QUESTIONS
 --
 RepeatFS is actively being developed and improved all the time.  If you encounter any issue at all, please don't hesitate to reach out and file a bug report here: https://github.com/ToniWestbrook/repeatfs/issues
+
+PUBLICATIONS
+--
+For further understanding of RepeatFS, please refer to the following publications:
+
+### Conference Proceedings (To Appear)
+
+* Anthony Westbrook, Bocheng Cui, Lakshmi Ongolu, & Elizabeth Varki (2026). *Active Reproducibility for File-Based Exploratory Science*. **Proceedings of the ACM Conference on Reproducibility and Replicability (ACM REP '26).** (Accepted.)
+
+* Anthony Westbrook, Lakshmi Ongolu, Bocheng Cui, & Elizabeth Varki (2026). *Point-and-Click Reproducibility for Command-Line Data Analysis*. **Proceedings of the ACM Conference on Reproducibility and Replicability (ACM REP '26).** (Accepted.)
+
+### Journal Articles
+
+* Anthony Westbrook, Elizabeth Varki, W Kelley Thomas, **RepeatFS: a file system providing reproducibility through provenance and automation**, Bioinformatics, Volume 37, Issue 9, May 2021, Pages 1292–1296, https://doi.org/10.1093/bioinformatics/btaa950
+  - [Oxford Academic](https://academic.oup.com/bioinformatics/article/37/9/1292/5952659)
+  - [National Library of Medicine (PubMed Central)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8189677/)
+
+### Doctoral Dissertation
+
+* Westbrook, Anthony Stephen, "RepeatFS: A File System Providing Reproducibility Through Provenance and Automation" (2021). Doctoral Dissertations. 2640.
+https://scholars.unh.edu/dissertation/2640
+  - [UNH Scholars Repository](https://scholars.unh.edu/dissertation/2640/)
+  - [ProQuest Open Dissertation](https://www.proquest.com/openview/000c6ec94890bcac9457621f700a6e4c/1?pq-origsite=gscholar&cbl=18750&diss=y)
