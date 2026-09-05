@@ -1,7 +1,7 @@
 import struct
 import threading
 import queue
-from logger.basicLogger import Logger
+from repeatfs.plugins.distributed.utils.logger.basicLogger import Logger
 
 
 class MSGencoder:
@@ -87,6 +87,23 @@ class MessagesRegister:
     def set_netman(self, netman):
         self.netman = netman
 
+    def register_message_type(self, msg_class):
+        with self._lock:
+            msg_type = msg_class.__name__
+            if msg_type in self._msg_classes:
+                self._msg_classes[msg_type] = msg_class
+                Logger.warning(
+                    f"Updated existing message type registration for {msg_class.__name__} with msg_type {msg_type}."
+                )
+            else:
+                self._msg_classes[msg_type] = msg_class
+                Logger.info(
+                    f"Registered message type {msg_class.__name__} with msg_type {msg_type}."
+                )
+
+            with MessagesRegister._class_lock:
+                MessagesRegister._global_msg_types[msg_type] = msg_class
+                
     def register_message(self, msg_class, handler):
         with self._lock:  # Instance-level lock
             msg_type = (
@@ -133,22 +150,48 @@ class MessagesRegister:
                 return msg_type
         return None
 
+    # def handle_message(self, msg):
+    #     Logger.debug(f"Handling message: {msg}")
+    #     msg_type = self.get_message_type(msg)
+    #     if msg_type is None:
+    #         Logger.warning(f"Message type not registered: {msg.__class__.__name__}")
+    #         return
+    #     handler = self._msg_handlers[msg_type]
+    #     Logger.debug(f"Handling message {msg_type} with handler {handler.__name__}")
+    #     thread = threading.Thread(target=handler, args=(self.netman, msg), daemon=True)
+    #     thread.start()
+    #     # handler(self.netman, msg)
+    
+    # def handle_message(self, msg):
+    #     Logger.debug(f"Handling message: {msg}")
+    #     msg_type = self.get_message_type(msg)
+    #     if msg_type is None:
+    #         Logger.warning(f"Message type not registered: {msg.__class__.__name__}")
+    #         return
+
+    #     handler = self._msg_handlers.get(msg_type, None)
+    #     if handler is None:
+    #         Logger.debug(f"No handler registered for message type {msg_type}.")
+    #         return
+
+    #     Logger.debug(f"Handling message {msg_type} with handler {handler.__name__}")
+    #     thread = threading.Thread(target=handler, args=(self.netman, msg), daemon=True)
+    #     thread.start()
+    #     def get_message_class(self, msg_type):
+    #         with self._lock:
+    #             return self._msg_classes.get(msg_type, None)
+
     def handle_message(self, msg):
-        Logger.debug(f"Handling message: {msg}")
+
         msg_type = self.get_message_type(msg)
         if msg_type is None:
             Logger.warning(f"Message type not registered: {msg.__class__.__name__}")
             return
-        handler = self._msg_handlers[msg_type]
-        Logger.debug(f"Handling message {msg_type} with handler {handler.__name__}")
-        thread = threading.Thread(target=handler, args=(self.netman, msg), daemon=True)
-        thread.start()
-        # handler(self.netman, msg)
-
-    def get_message_class(self, msg_type):
-        with self._lock:
-            return self._msg_classes.get(msg_type, None)
-
+        handler = self._msg_handlers.get(msg_type, None)
+        if handler is None:
+            return
+        handler(self.netman, msg)
+        
     def start_handling_messages(self, msgQueue: msgQueue):
         Logger.info("Started handling messages.")
         self.queue = msgQueue

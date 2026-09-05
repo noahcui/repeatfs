@@ -75,7 +75,7 @@ class FileEntry:
         inline_sep = self.core.configuration.values["suffix"] * 2
         inline_fields = virt_path.split(inline_sep)
         self.inline_cmd = "".join(inline_fields[1:])
-
+        
         # Build paths
         virt_path = inline_fields[0]
         self.paths = FileEntry.get_paths(virt_path.lstrip(os.sep), self.core.root, self.core.mount)

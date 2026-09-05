@@ -14,7 +14,7 @@ import json
 import os
 import subprocess
 import threading
-from repeatfs.provenance.process_record import ProcessRecord
+from repeatfs.plugins.distributed.provenance.process_record import ProcessRecord
 from multiprocessing import Queue
 
 

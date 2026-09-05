@@ -1,6 +1,6 @@
-from ids.nodeID import ID
+from repeatfs.plugins.distributed.utils.id.nodeID import ID
 import json
-from logger.basicLogger import Logger
+from repeatfs.plugins.distributed.utils.logger.basicLogger import Logger
 
 
 class NodeInfo:

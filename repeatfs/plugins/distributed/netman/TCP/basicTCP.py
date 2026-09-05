@@ -1,6 +1,6 @@
 import socket
 import threading
-from logger.basicLogger import Logger
+from repeatfs.plugins.distributed.utils.logger.basicLogger import Logger
 
 
 class BasicTCPClient:
