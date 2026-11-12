@@ -83,7 +83,6 @@ class ProcessRecord:
                 cmd = handle.read()[:-1]
 
         except PermissionError: cmd = ""
-
         return cmd
 
     def _record_pipes(self, ignore_pipes):
@@ -218,8 +217,17 @@ class ProcessRecord:
         # Record environmental variables
         try:
             self.env = ""
-            # with open("/proc/{0}/environ".format(pid), "r") as handle:
+            # with open("/proc/{0}/environ".format(self.pid), "r") as handle:
             #    self.env = handle.read().rstrip()
+            # self.env = os.readlink("/proc/{0}/environ".format(self.pid))
+            path = f"/proc/{self.pid}/environ"
+            fd = os.open(path, os.O_RDONLY)
+            try:
+                data = os.read(fd, 1024 * 1024) 
+                self.env = data.decode("utf-8", errors="replace").rstrip()
+            finally:
+                os.close(fd)
+            
         except PermissionError:
             self.env = ""
 

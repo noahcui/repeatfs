@@ -23,7 +23,7 @@ class PluginBase:
         plugins = []
 
         for entry in os.scandir(os.path.dirname(os.path.realpath(__file__))):
-            if entry.is_file() and entry.name.endswith(".py") and entry.name != "plugins.py":
+            if entry.is_file() and entry.name.endswith(".py") and entry.name != "plugins.py" and entry.name != "__init__.py":
                 plugins.append(entry.name[:-3])
 
         return plugins
@@ -60,7 +60,12 @@ class PluginBase:
                 plugin_insts.append(getattr(module, "Plugin")(core, pidx))
                 plugin_insts[-1].init()
             except Exception as e:
-                core.log("Error: Could not load plugin '{}' ({})".format(plugin.strip(), e), core.LOG_OUTPUT)
+                import traceback
+                err = traceback.format_exc()
+                core.log(
+                    "Error: Could not load plugin '{}' ({})\n{}".format(plugin.strip(), e, err),
+                    core.LOG_OUTPUT,
+                )
                 sys.exit(1)
 
         return plugin_insts

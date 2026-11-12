@@ -3,3 +3,5 @@ build/
 *.egg-info/
 # macOS
 .DS_Store
+__pycache__/
+*.py[cod]
